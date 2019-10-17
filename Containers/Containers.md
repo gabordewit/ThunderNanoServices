@@ -144,13 +144,12 @@ Containers interface properties:
 | Property | Description |
 | :-------- | :-------- |
 | [containers](#property.containers) <sup>RO</sup> | List of active containers |
-| [networks](#property.networks) <sup>RO</sup> | List of networks in the container |
-| [ip](#property.ip) <sup>RO</sup> | List of all ip addresses of the container |
-| [memory](#property.memory) <sup>RO</sup> | Operating memory allocated to the container |
+| [networks](#property.networks) <sup>RO</sup> | List of network interfaces of the container |
+| [memory](#property.memory) <sup>RO</sup> | Memory taken by container |
 | [status](#property.status) <sup>RO</sup> | Operational status of the container |
-| [cpu](#property.cpu) <sup>RO</sup> | CPU time allocated to running the container |
-| [log](#property.log) <sup>RO</sup> | Containers log |
-| [config](#property.config) <sup>RO</sup> | Container's configuration |
+| [cpu](#property.cpu) <sup>RO</sup> | CPU time |
+| [logpath](#property.logpath) <sup>RO</sup> | Containers log |
+| [configpath](#property.configpath) <sup>RO</sup> | Container's configuration |
 
 <a name="property.containers"></a>
 ## *containers <sup>property</sup>*
@@ -191,7 +190,7 @@ Provides access to the list of active containers.
 <a name="property.networks"></a>
 ## *networks <sup>property</sup>*
 
-Provides access to the list of networks in the container.
+Provides access to the list of network interfaces of the container.
 
 > This property is **read-only**.
 
@@ -199,8 +198,11 @@ Provides access to the list of networks in the container.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| (property) | array | List of all networks related to conainer |
-| (property)[#] | string |  |
+| (property) | array | List of all network interfaces related to the container |
+| (property)[#] | object | Returns networks associated with the container |
+| (property)[#]?.interface | string | <sup>*(optional)*</sup> Interface name |
+| (property)[#]?.ips | array | <sup>*(optional)*</sup> List of ip addresses |
+| (property)[#]?.ips[#] | string | <sup>*(optional)*</sup> IP address |
 
 > The *name* shall be passed as the index to the property, e.g. *Containers.1.networks@ContainerName*.
 
@@ -228,58 +230,19 @@ Provides access to the list of networks in the container.
     "jsonrpc": "2.0", 
     "id": 1234567890, 
     "result": [
-        "veth3NF06K"
-    ]
-}
-```
-<a name="property.ip"></a>
-## *ip <sup>property</sup>*
-
-Provides access to the list of all ip addresses of the container.
-
-> This property is **read-only**.
-
-### Value
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| (property) | array | List of all ip addresses of the container |
-| (property)[#] | string |  |
-
-> The *name* shall be passed as the index to the property, e.g. *Containers.1.ip@ContainerName*.
-
-### Errors
-
-| Code | Message | Description |
-| :-------- | :-------- | :-------- |
-| 2 | ```ERROR_UNAVAILABLE``` | Container not found |
-
-### Example
-
-#### Get Request
-
-```json
-{
-    "jsonrpc": "2.0", 
-    "id": 1234567890, 
-    "method": "Containers.1.ip@ContainerName"
-}
-```
-#### Get Response
-
-```json
-{
-    "jsonrpc": "2.0", 
-    "id": 1234567890, 
-    "result": [
-        "192.168.0.123"
+        {
+            "interface": "veth3NF06K", 
+            "ips": [
+                "192.168.0.12"
+            ]
+        }
     ]
 }
 ```
 <a name="property.memory"></a>
 ## *memory <sup>property</sup>*
 
-Provides access to the operating memory allocated to the container.
+Provides access to the memory taken by container.
 
 > This property is **read-only**.
 
@@ -287,7 +250,10 @@ Provides access to the operating memory allocated to the container.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| (property) | string | Memory taken by container, in bytes |
+| (property) | object | Memory allocated by the container, in bytes |
+| (property)?.allocated | number | <sup>*(optional)*</sup> Memory allocated by container |
+| (property)?.resident | number | <sup>*(optional)*</sup> Resident memory of the container |
+| (property)?.shared | number | <sup>*(optional)*</sup> Shared memory in the container |
 
 > The *name* shall be passed as the index to the property, e.g. *Containers.1.memory@ContainerName*.
 
@@ -314,7 +280,11 @@ Provides access to the operating memory allocated to the container.
 {
     "jsonrpc": "2.0", 
     "id": 1234567890, 
-    "result": "{memory: 123456789; kmem: 112233445}"
+    "result": {
+        "allocated": 0, 
+        "resident": 0, 
+        "shared": 0
+    }
 }
 ```
 <a name="property.status"></a>
@@ -361,7 +331,7 @@ Provides access to the operational status of the container.
 <a name="property.cpu"></a>
 ## *cpu <sup>property</sup>*
 
-Provides access to the CPU time allocated to running the container.
+Provides access to the CPU time.
 
 > This property is **read-only**.
 
@@ -369,7 +339,10 @@ Provides access to the CPU time allocated to running the container.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| (property) | string | CPU time, in nanoseconds |
+| (property) | object | CPU time spent on running the container, in nanoseconds |
+| (property)?.total | number | <sup>*(optional)*</sup> CPU-time spent on container, in nanoseconds |
+| (property)?.threads | array | <sup>*(optional)*</sup> Time spent on each cpu-thread, in nanoseconds |
+| (property)?.threads[#] | number | <sup>*(optional)*</sup>  |
 
 > The *name* shall be passed as the index to the property, e.g. *Containers.1.cpu@ContainerName*.
 
@@ -396,11 +369,16 @@ Provides access to the CPU time allocated to running the container.
 {
     "jsonrpc": "2.0", 
     "id": 1234567890, 
-    "result": "{total:21873781248,thread1:284129812,thread2:2138921}"
+    "result": {
+        "total": 2871287421, 
+        "threads": [
+            12314235
+        ]
+    }
 }
 ```
-<a name="property.log"></a>
-## *log <sup>property</sup>*
+<a name="property.logpath"></a>
+## *logpath <sup>property</sup>*
 
 Provides access to the containers log.
 
@@ -412,7 +390,7 @@ Provides access to the containers log.
 | :-------- | :-------- | :-------- |
 | (property) | string | logs from the container |
 
-> The *name* shall be passed as the index to the property, e.g. *Containers.1.log@ContainerName*.
+> The *name* shall be passed as the index to the property, e.g. *Containers.1.logpath@ContainerName*.
 
 ### Errors
 
@@ -428,7 +406,7 @@ Provides access to the containers log.
 {
     "jsonrpc": "2.0", 
     "id": 1234567890, 
-    "method": "Containers.1.log@ContainerName"
+    "method": "Containers.1.logpath@ContainerName"
 }
 ```
 #### Get Response
@@ -440,8 +418,8 @@ Provides access to the containers log.
     "result": ""
 }
 ```
-<a name="property.config"></a>
-## *config <sup>property</sup>*
+<a name="property.configpath"></a>
+## *configpath <sup>property</sup>*
 
 Provides access to the container's configuration.
 
@@ -453,7 +431,7 @@ Provides access to the container's configuration.
 | :-------- | :-------- | :-------- |
 | (property) | string | configuraiton of the container |
 
-> The *name* shall be passed as the index to the property, e.g. *Containers.1.config@ContainerName*.
+> The *name* shall be passed as the index to the property, e.g. *Containers.1.configpath@ContainerName*.
 
 ### Errors
 
@@ -469,7 +447,7 @@ Provides access to the container's configuration.
 {
     "jsonrpc": "2.0", 
     "id": 1234567890, 
-    "method": "Containers.1.config@ContainerName"
+    "method": "Containers.1.configpath@ContainerName"
 }
 ```
 #### Get Response
